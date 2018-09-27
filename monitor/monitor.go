@@ -3,7 +3,6 @@ package monitor
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -227,20 +226,25 @@ func _monitor() {
 
 		req, _ := http.NewRequest("GET", hostUrl, nil)
 		req.Header.Set("Connection", "close")
-		getResp, err := client.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
 			log.Printf(host+", monitor error,", err)
 			onMonitorErr(host)
 			continue
 		}
-		defer getResp.Body.Close()
+		defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(getResp.Body)                        // body=['o','k',...]
-		if !(err == nil && len(body) >= 2 && string(body[:2]) == "ok") { // err
-			log.Println(host, ", error,", err)
-			onMonitorErr(host)
-		} else { // get "ok"
+		ok := false
+		for _, whiteCode := range g.Config().WhiteCode {
+			if resp.StatusCode == whiteCode {
+				ok = true
+				break
+			}
+		}
+		if ok {
 			onMonitorOk(host)
+		} else {
+			onMonitorErr(host)
 		}
 	}
 }
