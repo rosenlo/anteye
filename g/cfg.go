@@ -2,9 +2,10 @@ package g
 
 import (
 	"encoding/json"
-	"github.com/toolkits/file"
 	"log"
 	"sync"
+
+	"github.com/toolkits/file"
 )
 
 type HttpConfig struct {
@@ -24,6 +25,12 @@ type SmsConfig struct {
 	Receivers string `json:"receivers"`
 }
 
+type VoiceConfig struct {
+	Enable    bool     `json:"enable"`
+	Url       string   `json:"url"`
+	Receivers []string `json:"receivers"`
+}
+
 type CallbackConfig struct {
 	Enable bool   `json:"enable"`
 	Url    string `json:"url"`
@@ -34,12 +41,14 @@ type MonitorConfig struct {
 }
 
 type GlobalConfig struct {
-	Debug    bool            `json:"debug"`
-	Http     *HttpConfig     `json:"http"`
-	Mail     *MailConfig     `json:"mail"`
-	Sms      *SmsConfig      `json:"sms"`
-	Callback *CallbackConfig `json:"callback"`
-	Monitor  *MonitorConfig  `json:"monitor"`
+	Debug     bool            `json:"debug"`
+	Http      *HttpConfig     `json:"http"`
+	Mail      *MailConfig     `json:"mail"`
+	Sms       *SmsConfig      `json:"sms"`
+	Voice     *VoiceConfig    `json:"voice"`
+	Callback  *CallbackConfig `json:"callback"`
+	Monitor   *MonitorConfig  `json:"monitor"`
+	WhiteCode []int           `json:"whiteCode"`
 }
 
 var (

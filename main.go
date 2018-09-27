@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/niean/anteye/g"
-	"github.com/niean/anteye/http"
-	"github.com/niean/anteye/monitor"
+	"github.com/RosenLo/anteye/g"
+	"github.com/RosenLo/anteye/http"
+	"github.com/RosenLo/anteye/monitor"
 )
 
 func main() {

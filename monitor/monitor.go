@@ -17,7 +17,7 @@ import (
 	nhttpclient "github.com/niean/gotools/http/httpclient"
 	ntime "github.com/niean/gotools/time"
 
-	"github.com/niean/anteye/g"
+	"github.com/RosenLo/anteye/g"
 )
 
 var (
@@ -86,6 +86,22 @@ func alarmJudge() {
 			}
 		}
 
+		// voice
+		if cfg.Voice.Enable {
+			for _, receiver := range cfg.Voice.Receivers {
+				go func() {
+					content := formAlarmVoiceContent(receiver, content.String(), "AntEye")
+					err := sendSms(cfg.Voice.Url, content)
+					if err != nil {
+						log.Println("alarm send voice error, voice:", content, "", err)
+					} else {
+						// statistics
+						pfc.Meter("MonitorAlarmVoice", 1)
+					}
+				}()
+			}
+		}
+
 		// callback
 		if cfg.Callback.Enable {
 			cbc := content.String()
@@ -128,6 +144,28 @@ func formAlarmSmsContent(tos string, content string, from string) string {
 
 func sendSms(smsUrl string, content string) error {
 	client := nhttpclient.GetHttpClient("monitor.sms", 5*time.Second, 10*time.Second)
+	// send by http-post
+	req, err := http.NewRequest("POST", smsUrl, bytes.NewBufferString(content))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	req.Header.Set("Connection", "close")
+	postResp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer postResp.Body.Close()
+
+	if postResp.StatusCode/100 != 2 {
+		return fmt.Errorf("Http-Post Error, Code %d", postResp.StatusCode)
+	}
+	return nil
+}
+
+func formAlarmVoiceContent(to string, content string, from string) string {
+	return fmt.Sprintf("mobile=%s&msg=%s&source=%s", to, content, from)
+}
+
+func sendVoice(smsUrl string, content string) error {
+	client := nhttpclient.GetHttpClient("monitor.voice", 5*time.Second, 10*time.Second)
 	// send by http-post
 	req, err := http.NewRequest("POST", smsUrl, bytes.NewBufferString(content))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
