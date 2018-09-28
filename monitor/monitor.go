@@ -29,10 +29,11 @@ var (
 )
 
 func Start() {
+	cronSpec = g.Config().Cron
 	monitorCron.AddFuncCC(cronSpec, func() { monitor() }, 1)
 	monitorCron.Start()
 	go alarmJudge()
-	log.Println("monitor.Start ok")
+	log.Println("[INFO] monitor.Start ok")
 }
 
 // alarm judge
@@ -59,6 +60,10 @@ func alarmJudge() {
 		}
 
 		cfg := g.Config()
+		if cfg.Debug {
+			log.Println("[DEBUG]", content.String())
+		}
+
 		// mail
 		if cfg.Mail.Enable {
 			hn, _ := os.Hostname()
@@ -66,7 +71,7 @@ func alarmJudge() {
 				content.String(), "AntEye")
 			err := sendMail(cfg.Mail.Url, mailContent)
 			if err != nil {
-				log.Println("alarm send mail error, mail:", mailContent, "", err)
+				log.Println("[ERROR] alarm send mail error, mail:", mailContent, "", err)
 			} else {
 				// statistics
 				pfc.Meter("MonitorAlarmMail", 1)
@@ -78,7 +83,7 @@ func alarmJudge() {
 			smsContent := formAlarmSmsContent(cfg.Sms.Receivers, content.String(), "AntEye")
 			err := sendSms(cfg.Sms.Url, smsContent)
 			if err != nil {
-				log.Println("alarm send sms error, sms:", smsContent, "", err)
+				log.Println("[ERROR] alarm send sms error, sms:", smsContent, "", err)
 			} else {
 				// statistics
 				pfc.Meter("MonitorAlarmSms", 1)
@@ -92,7 +97,7 @@ func alarmJudge() {
 					content := formAlarmVoiceContent(receiver, content.String(), "AntEye")
 					err := sendSms(cfg.Voice.Url, content)
 					if err != nil {
-						log.Println("alarm send voice error, voice:", content, "", err)
+						log.Println("[ERROR] alarm send voice error, voice:", content, "", err)
 					} else {
 						// statistics
 						pfc.Meter("MonitorAlarmVoice", 1)
@@ -106,7 +111,7 @@ func alarmJudge() {
 			cbc := content.String()
 			err := alarmCallback(cfg.Callback.Url, cbc)
 			if err != nil {
-				log.Println("alarm callback error, callback:", cfg.Callback, ", content:", cbc, "", err)
+				log.Println("[ERROR] alarm callback error, callback:", cfg.Callback, ", content:", cbc, "", err)
 			} else {
 				// statistics
 				pfc.Meter("MonitorAlarmCallback", 1)
@@ -204,7 +209,9 @@ func monitor() {
 	startTs := time.Now().Unix()
 	_monitor()
 	endTs := time.Now().Unix()
-	log.Printf("monitor, startTs %s, time-consuming %d sec\n", ntime.FormatTs(startTs), endTs-startTs)
+	if g.Config().Debug {
+		log.Printf("[DEBUG] monitor, startTs %s, time-consuming %d sec\n", ntime.FormatTs(startTs), endTs-startTs)
+	}
 
 	// statistics
 	pfc.Meter("MonitorCronCnt", 1)
@@ -242,6 +249,9 @@ func _monitor() {
 			}
 		}
 		if ok {
+			if g.Config().Debug {
+				log.Println("[DEBUG]", host, "pass")
+			}
 			onMonitorOk(host)
 		} else {
 			onMonitorErr(host)
@@ -261,14 +271,9 @@ func onMonitorErr(host string) {
 
 	// alarm
 	errCnt := ss.GetErrCnt()
-	if errCnt >= 4 && errCnt <= 16 {
-		for i := 4; i <= errCnt; i *= 2 {
-			if errCnt == i {
-				a := NewAlarm(host, "err", ss.GetErrCnt())
-				alarmCache.Put(host, a)
-				break
-			}
-		}
+	if errCnt >= 1 && errCnt <= g.Config().MaxStep {
+		a := NewAlarm(host, "err", ss.GetErrCnt())
+		alarmCache.Put(host, a)
 	}
 }
 
@@ -284,7 +289,7 @@ func onMonitorOk(host string) {
 	ss.OnOk()
 
 	if ss.IsTurnToOk() {
-		if errCnt >= 4 { //有过alarm, 才能turnOk
+		if errCnt >= 1 { //有过alarm, 才能turnOk
 			// alarm
 			a := NewAlarm(host, "ok", ss.GetErrCnt())
 			alarmCache.Put(host, a)

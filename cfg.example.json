@@ -14,6 +14,11 @@
         "url" : "http://sms.server:1986/sms/sender",
         "receivers" : "18001163885,13811685238"
     },
+    "voice" : {
+        "enable": true,
+        "url" : "http://voice.server.com/send",
+        "receivers" : ["18516601053"]
+    },
     "callback" : {
         "enable": false,
         "url" : "http://tycloudstart.com:1986/anteys/alarm"
@@ -24,5 +29,8 @@
             "task,test.hostname01:8002/health",
             "graph,test.hostname01:6071/health"
         ]
-    }
+    },
+    "whiteCode": [200, 404],
+    "maxStep": 3,
+    "cron": "30 * * * * *"
 }

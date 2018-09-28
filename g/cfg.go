@@ -49,6 +49,8 @@ type GlobalConfig struct {
 	Callback  *CallbackConfig `json:"callback"`
 	Monitor   *MonitorConfig  `json:"monitor"`
 	WhiteCode []int           `json:"whiteCode"`
+	MaxStep   int             `json:"maxStep"`
+	Cron      string          `json:"cron"`
 }
 
 var (
