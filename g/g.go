@@ -11,7 +11,7 @@ import (
 // 0.0.3: use pfc, rm vg
 
 const (
-	VERSION = "0.0.3"
+	VERSION = "1.0.0"
 )
 
 func init() {

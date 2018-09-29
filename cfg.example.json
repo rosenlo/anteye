@@ -17,7 +17,7 @@
     "voice" : {
         "enable": true,
         "url" : "http://voice.server.com/send",
-        "receivers" : ["18516601053"]
+        "receivers" : ["18512344321"]
     },
     "callback" : {
         "enable": false,
