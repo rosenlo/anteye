@@ -93,7 +93,7 @@ func alarmJudge() {
 		// voice
 		if cfg.Voice.Enable {
 			for _, receiver := range cfg.Voice.Receivers {
-				go func() {
+				go func(receiver string) {
 					content := formAlarmVoiceContent(receiver, content.String(), "AntEye")
 					err := sendSms(cfg.Voice.Url, content)
 					if err != nil {
@@ -102,7 +102,7 @@ func alarmJudge() {
 						// statistics
 						pfc.Meter("MonitorAlarmVoice", 1)
 					}
-				}()
+				}(receiver)
 			}
 		}
 
@@ -235,7 +235,7 @@ func _monitor() {
 		req.Header.Set("Connection", "close")
 		resp, err := client.Do(req)
 		if err != nil {
-			log.Printf(host+", monitor error,", err)
+			log.Println("[ERROR]", host+", monitor error,", err)
 			onMonitorErr(host)
 			continue
 		}
@@ -358,5 +358,5 @@ func NewAlarm(obj string, atype string, cnt int) *Alarm {
 }
 
 func (a *Alarm) String() string {
-	return fmt.Sprintf("[%s][%s][%d][%s]", ntime.FormatTs(a.Ts), a.AlarmType, a.AlarmCnt, a.ObjName)
+	return fmt.Sprintf("[%s] 连接超时", a.ObjName)
 }
