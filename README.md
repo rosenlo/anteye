@@ -1,5 +1,5 @@
 # anteye
-anteye is a small and simple monitor system. anteye should monitor cluster less then 50 instances. it can send notice msgs via **mail**、**sms**、**voice** or **callback(TODO)**.
+anteye is a small and simple monitor system. anteye should monitor cluster less than 50 instances. it can send notice msgs via **mail**、**sms**、**voice** or **callback(TODO)**.
 we suggest you deploy more than one anteye instances in the production environment.
 
 ## install
